@@ -1,0 +1,112 @@
+/* CORTIS minimal theme: "color outside the lines"
+   A thin ink frame, with one green block that breaks out of it. */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap');
+
+:root {
+    --paper: #f4f6f3;
+    --ink: #15181b;
+    --green: #2fd774;
+    --muted: #5d6460;
+    --inset: clamp(12px, 3vw, 32px);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+
+body {
+    position: relative;
+    min-height: 100vh;
+    margin: 0;
+    padding: calc(var(--inset) + clamp(32px, 8vw, 96px))
+             calc(var(--inset) + clamp(20px, 6vw, 80px))
+             clamp(140px, 24vw, 280px);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+}
+
+/* the "lines" */
+body::before {
+    content: "";
+    position: fixed;
+    inset: var(--inset);
+    border: 2px solid var(--ink);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* the color that goes outside them */
+body::after {
+    content: "";
+    position: fixed;
+    right: calc(var(--inset) - clamp(14px, 3vw, 36px));
+    bottom: calc(var(--inset) - clamp(14px, 3vw, 36px));
+    width: clamp(90px, 20vw, 260px);
+    aspect-ratio: 1;
+    background: var(--green);
+    pointer-events: none;
+    z-index: 0;
+}
+
+body > * {
+    position: relative;
+    z-index: 2;
+    max-width: 46rem;
+}
+
+h1 {
+    margin: 0 0 0.4em;
+    font-size: clamp(2.6rem, 10vw, 6.5rem);
+    font-weight: 800;
+    font-stretch: 118%;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+}
+
+h2 {
+    margin: 0 0 2rem;
+    font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+    font-weight: 400;
+    color: var(--muted);
+}
+
+p { margin: 0 0 1.5rem; font-size: 1.05rem; }
+.note { margin-top: 1.5rem; color: var(--muted); font-size: 0.95rem; }
+
+/* table */
+.table-wrap { overflow-x: auto; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+}
+
+th, td { padding: 0.6rem 0.75rem; text-align: right; }
+th:first-child, td:first-child { padding-left: 0; text-align: left; }
+td:last-child, th:last-child { padding-right: 0; }
+
+thead th {
+    border-bottom: 2px solid var(--ink);
+    font-weight: 700;
+}
+
+tbody td { border-bottom: 1px solid rgba(21, 24, 27, 0.18); }
+
+tfoot td { color: var(--muted); padding-top: 0.35rem; padding-bottom: 0.35rem; }
+tfoot tr:first-child td { padding-top: 1rem; }
+
+tfoot .total td {
+    border-top: 2px solid var(--ink);
+    color: var(--ink);
+    font-size: 1.4rem;
+    font-weight: 800;
+    padding-top: 0.8rem;
+}
+
+@media (max-width: 520px) {
+    table { font-size: 0.88rem; }
+    th, td { padding-left: 0.4rem; padding-right: 0.4rem; }
+}
