@@ -2,62 +2,105 @@
 // ===== VARIABLES =====
 $storeName = 'CORTIS ALBUM';
 $customer = 'Patricia';
-$discountPercent = '10';   // 10% bundle discount (stored as a string on purpose)
-$discountMinimum = 150;    // minimum subtotal to qualify
-$taxRate = 0.12;           // 12% tax
+$membership = 'gold';        // try 'silver' or 'regular'
+$taxRate = 0.12;             // 12% tax
+$shippingFee = 5;
+$freeShippingMinimum = 150;
+$photocardEvery = 50;        // 1 free photocard for every $50 spent
 
 // ===== ARRAYS =====
+// Index 0 = 1st EP, 1 = 2nd EP, 2 = 3rd EP
 $titles = [
     '1ST EP: COLOR OUTSIDE THE LINES (2025)',
     '2ND EP: GREENGREEN (2026)',
     '3RD EP: GREENGREEN_PLAYEREXTENDED (2026)'
 ];
 $prices = [32.34, 68.66, 88.75];
-$quantities = [1, 1, 1];
+$quantities = [2, 1, 1];     // what the customer wants to buy
+$stock = [10, 3, 1];         // copies left in the store
 
-// ===== ARITHMETIC OPERATORS (price x quantity) =====
-$line0 = $prices[0] * $quantities[0];
-$line1 = $prices[1] * $quantities[1];
-$line2 = $prices[2] * $quantities[2];
-
-// ===== ASSIGNMENT OPERATORS =====
+// ===== FOR LOOP: compute every line total, subtotal and item count =====
+$lineTotals = [];
 $subtotal = 0;
-$subtotal += $line0;
-$subtotal += $line1;
-$subtotal += $line2;
-
 $itemsPurchased = 0;
-$itemsPurchased += $quantities[0];
-$itemsPurchased += $quantities[1];
-$itemsPurchased += $quantities[2];
 
-// ===== COMPARISON + LOGICAL OPERATORS =====
-// Discount only if the subtotal is high enough AND at least 3 items were bought
-$qualifies = $subtotal >= $discountMinimum && $itemsPurchased >= 3;
+for ($i = 0; $i < count($titles); $i++) {
+    // IF: nobody can buy more copies than the store has
+    if ($quantities[$i] > $stock[$i]) {
+        $quantities[$i] = $stock[$i];
+    }
+    $lineTotals[$i] = $prices[$i] * $quantities[$i];
+    $subtotal += $lineTotals[$i];
+    $itemsPurchased += $quantities[$i];
+}
+
+// ===== SWITCH: membership level =====
+switch ($membership) {
+    case 'gold':
+        $memberRate = 0.05;
+        $memberLabel = 'Gold member';
+        break;
+    case 'silver':
+        $memberRate = 0.02;
+        $memberLabel = 'Silver member';
+        break;
+    default:
+        $memberRate = 0;
+        $memberLabel = 'Regular';
+}
+
+// ===== IF / ELSEIF / ELSE: bundle discount tiers (percent kept as a string) =====
+if ($subtotal >= 300) {
+    $discountPercent = '15';
+} elseif ($subtotal >= 150) {
+    $discountPercent = '10';
+} elseif ($subtotal >= 100) {
+    $discountPercent = '5';
+} else {
+    $discountPercent = '0';
+}
+
+// ===== LOGICAL OPERATOR =====
+$qualifies = $subtotal >= 100 && $itemsPurchased >= 3;
 
 // ===== TYPE JUGGLING =====
-// PHP converts a value's type automatically depending on how it is used.
-$discountRate = $discountPercent / 100;               // string '10' becomes a number: 0.1
-$discount = $subtotal * $discountRate * $qualifies;   // boolean becomes a number: true = 1, false = 0
-$message = 'Discount applied (1 = yes, 0 = no): ' . (int)$qualifies; // (int) is an explicit cast
+$discountRate = $discountPercent / 100;                   // string becomes a number
+$bundleDiscount = $subtotal * $discountRate * $qualifies; // true = 1, false = 0
+$memberDiscount = $subtotal * $memberRate;
+$discount = $bundleDiscount + $memberDiscount;
+$afterDiscount = $subtotal - $discount;
+
+// ===== IF / ELSE: shipping =====
+if ($afterDiscount >= $freeShippingMinimum) {
+    $shipping = 0;
+} else {
+    $shipping = $shippingFee;
+}
 
 // ===== EXPRESSIONS =====
-$afterDiscount = $subtotal - $discount;
 $tax = $afterDiscount * $taxRate;
-$total = $afterDiscount + $tax;
-$average = $subtotal / $itemsPurchased;
+$total = $afterDiscount + $shipping + $tax;
+
+// ===== WHILE LOOP: 1 free photocard for every $50 spent =====
+$photocards = 0;
+$remaining = $afterDiscount;
+while ($remaining >= $photocardEvery) {
+    $photocards++;
+    $remaining -= $photocardEvery;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
     <title><?php echo $storeName; ?></title>
 </head>
 <body>
     <h1><?php echo $storeName; ?></h1>
-    <h2>Welcome COER <?php echo $customer; ?></h2>
+    <h2>Welcome COER <?php echo $customer; ?> <span class="badge"><?php echo $memberLabel; ?></span></h2>
     <p>As you proceed for the payment, below is the result of your purchase:</p>
 
     <div class="table-wrap">
@@ -68,53 +111,86 @@ $average = $subtotal / $itemsPurchased;
                 <th>Price</th>
                 <th>Qty</th>
                 <th>Amount</th>
+                <th>Stock</th>
             </tr>
         </thead>
         <tbody>
+            <?php foreach ($titles as $i => $title) {
+                // IF / ELSEIF / ELSE: stock label for each album
+                if ($stock[$i] == 1) {
+                    $status = 'Last copy';
+                    $statusClass = 'low';
+                } elseif ($stock[$i] <= 3) {
+                    $status = 'Low stock';
+                    $statusClass = 'low';
+                } else {
+                    $status = 'In stock';
+                    $statusClass = 'ok';
+                }
+            ?>
             <tr>
-                <td><?php echo $titles[0]; ?></td>
-                <td>$<?php echo number_format($prices[0], 2); ?></td>
-                <td><?php echo $quantities[0]; ?></td>
-                <td>$<?php echo number_format($line0, 2); ?></td>
+                <td><?php echo $title; ?></td>
+                <td>$<?php echo number_format($prices[$i], 2); ?></td>
+                <td>
+                    <?php echo $quantities[$i]; ?>
+                    <span class="pips"><?php
+                        // NESTED FOR LOOP: one square per copy
+                        for ($q = 1; $q <= $quantities[$i]; $q++) {
+                            echo '■';
+                        }
+                    ?></span>
+                </td>
+                <td>$<?php echo number_format($lineTotals[$i], 2); ?></td>
+                <td class="<?php echo $statusClass; ?>"><?php echo $status; ?></td>
             </tr>
-            <tr>
-                <td><?php echo $titles[1]; ?></td>
-                <td>$<?php echo number_format($prices[1], 2); ?></td>
-                <td><?php echo $quantities[1]; ?></td>
-                <td>$<?php echo number_format($line1, 2); ?></td>
-            </tr>
-            <tr>
-                <td><?php echo $titles[2]; ?></td>
-                <td>$<?php echo number_format($prices[2], 2); ?></td>
-                <td><?php echo $quantities[2]; ?></td>
-                <td>$<?php echo number_format($line2, 2); ?></td>
-            </tr>
+            <?php } ?>
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3">Items purchased</td>
+                <td colspan="4">Items purchased</td>
                 <td><?php echo $itemsPurchased; ?></td>
             </tr>
             <tr>
-                <td colspan="3">Subtotal</td>
+                <td colspan="4">Subtotal</td>
                 <td>$<?php echo number_format($subtotal, 2); ?></td>
             </tr>
+            <?php if ($bundleDiscount > 0) { ?>
             <tr>
-                <td colspan="3">Discount (<?php echo $discountRate * 100; ?>%)</td>
-                <td>-$<?php echo number_format($discount, 2); ?></td>
+                <td colspan="4">Bundle discount (<?php echo $discountPercent; ?>%)</td>
+                <td>-$<?php echo number_format($bundleDiscount, 2); ?></td>
+            </tr>
+            <?php } ?>
+            <?php if ($memberDiscount > 0) { ?>
+            <tr>
+                <td colspan="4"><?php echo $memberLabel; ?> discount (<?php echo $memberRate * 100; ?>%)</td>
+                <td>-$<?php echo number_format($memberDiscount, 2); ?></td>
+            </tr>
+            <?php } ?>
+            <tr>
+                <td colspan="4">Shipping</td>
+                <td><?php if ($shipping == 0) { echo 'FREE'; } else { echo '$' . number_format($shipping, 2); } ?></td>
             </tr>
             <tr>
-                <td colspan="3">Tax (<?php echo $taxRate * 100; ?>%)</td>
+                <td colspan="4">Tax (<?php echo $taxRate * 100; ?>%)</td>
                 <td>$<?php echo number_format($tax, 2); ?></td>
             </tr>
             <tr class="total">
-                <td colspan="3">Total</td>
+                <td colspan="4">Total</td>
                 <td>$<?php echo number_format($total, 2); ?></td>
             </tr>
         </tfoot>
     </table>
     </div>
 
-    <p class="note"><?php echo $message; ?> Average price per EP: $<?php echo number_format($average, 2); ?></p>
+    <p class="note">
+        <?php if ($qualifies) {
+            echo 'Bundle discount unlocked! ';
+        } else {
+            echo 'Buy 3 or more items worth at least $100 to unlock the bundle discount. ';
+        } ?>
+        You earned <?php echo $photocards; ?> free photocard(s).
+    </p>
+
+    <p class="note">&copy; <?php echo $storeName; ?> - thank you for shopping, <?php echo $customer; ?>!</p>
 </body>
 </html>
