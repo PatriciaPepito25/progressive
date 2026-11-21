@@ -1,7 +1,42 @@
 <?php
+// 1. STRICT TYPES
+declare(strict_types=1);
+// --------------- MODULE 3 ------------ //
+
+// 2. A multidimensional array 
+$albums = [
+    '1ST EP: COLOR OUTSIDE THE LINES (2025)' => ['price' => 32.34, 'stock' => 342, 'quantity' => 2],
+    '2ND EP: GREENGREEN (2026)'  => ['price' => 68.66, 'stock' => 363, 'quantity' => 3],
+    '3RD EP: GREENGREEN_PLAYEREXTENDED (2026)' => ['price' => 88.75, 'stock' => 132, 'quantity' => 5], 
+    '4TH EP: RED (2027)' => ['price' => 99.99, 'stock' => 50, 'quantity' => 10],
+    '5TH EP: BLUE (2028)' => ['price' => 120.00, 'stock' => 25, 'quantity' => 12],
+    '6TH EP: YELLOW (2029)' => ['price' => 150.00, 'stock' => 10, 'quantity' => 10]
+];
+
+// 3. A global variable is declared to hold the tax rate.
+$tax_rate = 30;
+
+// 4 & 5. Function to check stock level using a ternary operator.
+function get_reorder_message(int $stock_level): string
+{
+    return ($stock_level < 10) ? 'Yes' : 'No';
+}
+
+// 6. & 7 Function to calculate the total value of the stock for a product.
+function get_total_value(float $price, int $quantity): float
+{
+    return $price * $quantity;
+}
+
+// 8. Function called get_tax_due() is defined. 
+function get_tax_due(float $price, int $quantity, int $tax_rate) : float {
+    return ($price * $quantity) * $tax_rate/100;
+}
+
+// ------------ MODULE 1 & 2 --------------//
 // ===== VARIABLES =====
-$storeName = 'CORTIS ALBUM';
-$customer = 'Patricia';
+$storeName = 'K-POP CORTIS STORE';
+$customer = 'FAN';
 $membership = 'gold';        // try 'silver' or 'regular'
 $taxRate = 0.12;             // 12% tax
 $shippingFee = 5;
@@ -88,8 +123,8 @@ while ($remaining >= $photocardEvery) {
     $photocards++;
     $remaining -= $photocardEvery;
 }
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -103,94 +138,29 @@ while ($remaining >= $photocardEvery) {
     <h2>Welcome COER <?php echo $customer; ?> <span class="badge"><?php echo $memberLabel; ?></span></h2>
     <p>As you proceed for the payment, below is the result of your purchase:</p>
 
-    <div class="table-wrap">
     <table>
         <thead>
             <tr>
-                <th>Item</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Amount</th>
-                <th>Stock</th>
+                <th>PRODUCT</th>
+                <th>STOCK</th>
+                <th>RE-ORDER</th>
+                <th>TOTAL VALUE</th>
+                <th>TAX DUE</th>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($titles as $i => $title) {
-                // IF / ELSEIF / ELSE: stock label for each album
-                if ($stock[$i] == 1) {
-                    $status = 'Last copy';
-                    $statusClass = 'low';
-                } elseif ($stock[$i] <= 3) {
-                    $status = 'Low stock';
-                    $statusClass = 'low';
-                } else {
-                    $status = 'In stock';
-                    $statusClass = 'ok';
-                }
-            ?>
-            <tr>
-                <td><?php echo $title; ?></td>
-                <td>$<?php echo number_format($prices[$i], 2); ?></td>
-                <td>
-                    <?php echo $quantities[$i]; ?>
-                    <span class="pips"><?php
-                        // NESTED FOR LOOP: one square per copy
-                        for ($q = 1; $q <= $quantities[$i]; $q++) {
-                            echo '■';
-                        }
-                    ?></span>
-                </td>
-                <td>$<?php echo number_format($lineTotals[$i], 2); ?></td>
-                <td class="<?php echo $statusClass; ?>"><?php echo $status; ?></td>
-            </tr>
-            <?php } ?>
+            <?php foreach ($albums as $product_name => $data) : ?>
+                <tr>
+                    <td><?= $product_name ?></td>
+                    <td><?= $data['stock']?></td>
+                    <td><?= get_reorder_message($data['stock']) ?></td>
+                    <td>₱<?= get_total_value($data['price'], $data['quantity']) ?></td>
+                    <td>₱<?= get_tax_due($data['price'], $data['quantity'], $tax_rate) ?></td>
+                </tr>
+            <?php endforeach; ?>
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4">Items purchased</td>
-                <td><?php echo $itemsPurchased; ?></td>
-            </tr>
-            <tr>
-                <td colspan="4">Subtotal</td>
-                <td>$<?php echo number_format($subtotal, 2); ?></td>
-            </tr>
-            <?php if ($bundleDiscount > 0) { ?>
-            <tr>
-                <td colspan="4">Bundle discount (<?php echo $discountPercent; ?>%)</td>
-                <td>-$<?php echo number_format($bundleDiscount, 2); ?></td>
-            </tr>
-            <?php } ?>
-            <?php if ($memberDiscount > 0) { ?>
-            <tr>
-                <td colspan="4"><?php echo $memberLabel; ?> discount (<?php echo $memberRate * 100; ?>%)</td>
-                <td>-$<?php echo number_format($memberDiscount, 2); ?></td>
-            </tr>
-            <?php } ?>
-            <tr>
-                <td colspan="4">Shipping</td>
-                <td><?php if ($shipping == 0) { echo 'FREE'; } else { echo '$' . number_format($shipping, 2); } ?></td>
-            </tr>
-            <tr>
-                <td colspan="4">Tax (<?php echo $taxRate * 100; ?>%)</td>
-                <td>$<?php echo number_format($tax, 2); ?></td>
-            </tr>
-            <tr class="total">
-                <td colspan="4">Total</td>
-                <td>$<?php echo number_format($total, 2); ?></td>
-            </tr>
-        </tfoot>
     </table>
-    </div>
 
-    <p class="note">
-        <?php if ($qualifies) {
-            echo 'Bundle discount unlocked! ';
-        } else {
-            echo 'Buy 3 or more items worth at least $100 to unlock the bundle discount. ';
-        } ?>
-        You earned <?php echo $photocards; ?> free photocard(s).
-    </p>
-
-    <p class="note">&copy; <?php echo $storeName; ?> - thank you for shopping, <?php echo $customer; ?>!</p>
+    <p class="note">&copy; <?php echo $storeName; ?> - Thank you for shopping, <?php echo $customer; ?>!</p>
 </body>
 </html>
