@@ -16,10 +16,20 @@ body {
 }
 
 h1 {
+  display: flex;
+  align-items: center;
+  gap: 15px;
   font-family: "Playfair Display", serif;
   padding: 10px 20px 12px 20px;
   margin: 0px;
   color: #000000c4;
+}
+
+h1 img {
+  max-width: 200px;
+  display: flex;
+  height: 150px;
+  padding: 0 0 0 300px;
 }
 
 h2 {

@@ -1,7 +1,7 @@
 <?php
 // 1. STRICT TYPES
 declare(strict_types=1);
-// --------------- MODULE 3 ------------ //
+// --------------- MODULE 3 ----------- //
 
 // 2. A multidimensional array 
 $albums = [
@@ -134,7 +134,7 @@ while ($remaining >= $photocardEvery) {
     <title><?php echo $storeName; ?></title>
 </head>
 <body>
-    <h1><?php echo $storeName; ?></h1>
+    <h1><?php echo $storeName; ?><img src="img/logo.png" alt="logo"></h1>
     <h2>Welcome COER <?php echo $customer; ?> <span class="badge"><?php echo $memberLabel; ?></span></h2>
     <p>As you proceed for the payment, below is the result of your purchase:</p>
 
